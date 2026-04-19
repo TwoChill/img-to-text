@@ -1,3 +1,35 @@
+import importlib.metadata
+import pathlib
+import re
+import sys
+
+
+def _check_requirements():
+    req = pathlib.Path(__file__).parent / "requirements.txt"
+    if not req.exists():
+        return
+    missing = []
+    for line in req.read_text().splitlines():
+        line = line.strip()
+        if not line or line.startswith("#"):
+            continue
+        name = re.split(r"[><=!~\[\s]", line)[0]
+        try:
+            importlib.metadata.version(name)
+        except importlib.metadata.PackageNotFoundError:
+            missing.append(line)
+    if missing:
+        print("Missing packages:")
+        for p in missing:
+            print(f"  {p}")
+        print("\nInstall with: pip install -r requirements.txt")
+        input("\nPress Enter to exit...")
+        sys.exit(1)
+
+
+_check_requirements()
+
+
 import os
 import requests
 import configparser
